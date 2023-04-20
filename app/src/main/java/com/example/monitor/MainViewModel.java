@@ -4,7 +4,9 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.example.monitor.api.EarthquakeJSONResponse;
 import com.example.monitor.api.EqApiClient;
+import com.example.monitor.api.Feature;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -26,20 +28,36 @@ public class MainViewModel extends ViewModel {
     }
 
 
+    private List<Earthquake> getEarthquakesWithMoshi(EarthquakeJSONResponse body) {
+        ArrayList<Earthquake> eqList = new ArrayList<>();
+
+        List<Feature> features = body.getFeatures();
+        for (Feature feature: features) {
+            String id = feature.getId();
+            double magnitude = feature.getProperties().getMagnitude();
+            String place = feature.getProperties().getPlace();
+            long time = feature.getProperties().getTime();
+
+            double longitude = feature.getGeometry().getLongitude();
+            double latitude = feature.getGeometry().getLatitude();
+            Earthquake earthquake = new Earthquake(id, place, magnitude, time,
+                    latitude, longitude);
+            eqList.add(earthquake);
+        }
+
+        return eqList;
+    }
+
     public void getEarthquakes(){
         EqApiClient.EqService service = EqApiClient.getInstance().getService();
-
-        service.getEarthquakes().enqueue(new Callback<String>() {
+        service.getEarthquakes().enqueue(new Callback<EarthquakeJSONResponse>() {
             @Override
-            public void onResponse(Call<String> call, Response<String> response) {
-                List<Earthquake> earthquakeList = parseEarthquakes(response.body());
+            public void onResponse(Call<EarthquakeJSONResponse > call, Response<EarthquakeJSONResponse > response) {
+                List<Earthquake> earthquakeList = getEarthquakesWithMoshi(response.body());
                 eqList.setValue(earthquakeList);
             }
-
             @Override
-            public void onFailure(Call<String> call, Throwable t) {
-
-            }
+            public void onFailure(Call<EarthquakeJSONResponse> call, Throwable t) { }
         });
     }
 
