@@ -19,6 +19,11 @@ public class MainRepository {
 
     private final EqDatabase database;
 
+    public interface DownloadStatusListener{
+        void downloadSuccess();
+        void downloadError(String message);
+    }
+
     public MainRepository(EqDatabase database) {
         this.database = database;
     }
@@ -27,7 +32,7 @@ public class MainRepository {
         return database.eqDAO().getEarthquakes();
     }
 
-    public void downloadAndSaveEarthquakes() {
+    public void downloadAndSaveEarthquakes(DownloadStatusListener downloadStatusListener) {
         EqApiClient.EqService service = EqApiClient.getInstance().getService();
 
         service.getEarthquakes().enqueue(new Callback<EarthquakeJSONResponse>() {
@@ -38,11 +43,13 @@ public class MainRepository {
                 EqDatabase.databaseWriteExecutor.execute(() -> {
                     database.eqDAO().insertAll(earthquakeList);
                 });
+
+                downloadStatusListener.downloadSuccess();
             }
 
             @Override
             public void onFailure(Call<EarthquakeJSONResponse> call, Throwable t) {
-
+                downloadStatusListener.downloadError(t.getMessage());
             }
         });
     }
