@@ -25,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
 
         binding.eqRecycler.setLayoutManager(new LinearLayoutManager(this));
 
-        EqAdapter adapter = new EqAdapter();
+        EqAdapter adapter = new EqAdapter(this);
         adapter.setOnItemClickListener(earthquake ->
                 Toast.makeText(MainActivity.this,
                         earthquake.getPlace(),

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Monitor</string>
+    <string name="magnitude_format">%.2f</string>
 </resources>
